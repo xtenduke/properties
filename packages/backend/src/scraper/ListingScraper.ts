@@ -1,14 +1,17 @@
 import puppeteer, {Page} from "puppeteer";
+import { ListingStorage } from '../storage/ListingStorage';
 
 interface Result {
   hasNextPage: boolean;
   properties: Property[];
 }
 
-interface Property {
+export interface Property {
   id: string;
   title: string;
   link: string;
+  subtitle: string;
+  images: string[];
 }
 
 interface ScrapeConfig {
@@ -26,8 +29,9 @@ export const defaultConfig = {
 }
 
 export class ListingScraper {
+  constructor(private readonly storage: ListingStorage) {}
 
-private async scrape(config: ScrapeConfig = defaultConfig): Promise<Property[]> {
+  private async scrape(config: ScrapeConfig = defaultConfig): Promise<Property[]> {
     const browser = await puppeteer.launch();
     const page = await browser.newPage();
 
@@ -43,6 +47,12 @@ private async scrape(config: ScrapeConfig = defaultConfig): Promise<Property[]> 
       const result = await this.scrapeResultsPage(`${url}&page=${pageNum}`, page);
       hasNext = result.hasNextPage;
       properties.concat(...result.properties);
+
+      // insert
+      await Promise.all(result.properties.map((property) => this.storage.addListingIfNotExists(property)));
+
+      console.log(`Found ${result.properties.length} properties`);
+
       pageNum ++;
     }
     
@@ -63,15 +73,24 @@ private async scrape(config: ScrapeConfig = defaultConfig): Promise<Property[]> 
     const properties: Property[] = await page.evaluate(() => {
       // ignore first two non listing selectors
       return Array.from(document.querySelectorAll('tg-col')).map((element) => {
-        const link = "https://trademe.co.nz" + element.querySelector('a')?.getAttribute('href') ?? "unknown"
+        const id = element.querySelector('a')?.getAttribute('href') ?? "unknown"
+        const link = "https://trademe.co.nz" + id 
         const title = element.querySelector('tm-property-search-card-listing-title')?.textContent ?? "unknown";
+        const subtitle = element.querySelector('tm-property-search-card-address-subtitle')?.textContent ?? "unknown";
+        // first image is probably the agents image
+        let images = Array.from(element.getElementsByTagName('img')).map((imgElement) => imgElement.currentSrc);
+        if (images.length > 1) {
+          images = images.slice(1);
+        }
 
         return {
           id: link,
           title: title,
           link: link,
+          subtitle,
+          images
         }
-      })
+      }).filter((element) => element.id !== "undefined");
     });
 
     return {
@@ -81,6 +100,6 @@ private async scrape(config: ScrapeConfig = defaultConfig): Promise<Property[]> 
   }
 
   public async start(): Promise<void> {
-    await this.scrape();
+    const properties = await this.scrape();
   }
 }
