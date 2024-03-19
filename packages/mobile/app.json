@@ -1,0 +1,44 @@
+{
+  "expo": {
+    "name": "Properties",
+    "slug": "properties",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#FFFFF"
+    },
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.xtenduke.properties"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#ffffff"
+      },
+      "package": "com.xtenduke.properties",
+      "runtimeVersion": {
+        "policy": "appVersion"
+      }
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "456488aa-468a-4547-a1a7-00a1464638a3"
+      }
+    },
+    "owner": "xtenduke",
+    "updates": {
+      "url": "https://u.expo.dev/456488aa-468a-4547-a1a7-00a1464638a3"
+    }
+  }
+}
